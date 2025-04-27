@@ -74,20 +74,6 @@ flutter pub get
   ```bash
   flutter run
   ```
-- **For web (if supported)**:
-  ```bash
-  flutter run -d chrome
-  ```
-
-### 4. Build for release (optional)
-- **Android APK**:
-  ```bash
-  flutter build apk --release
-  ```
-- **iOS App**:
-  ```bash
-  flutter build ios --release
-  ```
 
 > **Note**: Make sure you have Flutter installed. You can check by running:
 > ```bash

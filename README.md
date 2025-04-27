@@ -48,22 +48,59 @@ Date,Category,Amount
 
 1. Launch the application.
 2. Either:
-   - Click "Select CSV File" to upload your own CSV file, or
-   - Click "Load Sample Data" to use the included sample data.
+   - Click **"Select CSV File"** to upload your own CSV file, or
+   - Click **"Load Sample Data"** to use the included sample data.
 3. Once data is loaded, use the chart type selector to switch between Bar, Pie, and Line charts.
 4. Use the category dropdown and date range selectors to filter the data as needed.
 5. The summary statistics at the bottom show the total and average spending for the filtered data.
 
+## Installation Process
+
+To set up the project locally, follow these steps:
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/your-username/expense-chart-generator.git
+cd expense-chart-generator
+```
+
+### 2. Install Flutter dependencies
+```bash
+flutter pub get
+```
+
+### 3. Run the application
+- **For mobile (Android/iOS)**:
+  ```bash
+  flutter run
+  ```
+- **For web (if supported)**:
+  ```bash
+  flutter run -d chrome
+  ```
+
+### 4. Build for release (optional)
+- **Android APK**:
+  ```bash
+  flutter build apk --release
+  ```
+- **iOS App**:
+  ```bash
+  flutter build ios --release
+  ```
+
+> **Note**: Make sure you have Flutter installed. You can check by running:
+> ```bash
+> flutter doctor
+> ```
+
 ## Technical Details
 
 This application is built using:
-- Flutter for the UI
-- GetX for state management
-- fl_chart for chart visualization
-- csv package for parsing CSV files
-- file_picker for selecting CSV files
-- intl for date and number formatting
+- **Flutter** for the UI
+- **GetX** for state management
+- **fl_chart** for chart visualization
+- **csv** package for parsing CSV files
+- **file_picker** for selecting CSV files
+- **intl** for date and number formatting
 
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.

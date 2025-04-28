@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:screenshot/screenshot.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 
@@ -21,7 +23,7 @@ class ChartContainer extends StatefulWidget {
 }
 
 class _ChartContainerState extends State<ChartContainer> {
-  final ScreenshotController _screenshotController = ScreenshotController();
+  final GlobalKey _chartKey = GlobalKey();
   bool _isSaving = false;
 
   @override
@@ -53,8 +55,8 @@ class _ChartContainerState extends State<ChartContainer> {
 
         // Chart content
         Expanded(
-          child: Screenshot(
-            controller: _screenshotController,
+          child: RepaintBoundary(
+            key: _chartKey,
             child: Container(
               color: Colors.white,
               child: widget.child,
@@ -71,30 +73,75 @@ class _ChartContainerState extends State<ChartContainer> {
         _isSaving = true;
       });
 
-      // Capture the screenshot
-      final Uint8List? imageBytes = await _screenshotController.capture();
-      if (imageBytes == null) {
+      // Add a small delay to ensure the widget is properly rendered
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Capture the widget as an image
+      final RenderRepaintBoundary? boundary = _chartKey.currentContext
+          ?.findRenderObject() as RenderRepaintBoundary?;
+
+      if (boundary == null) {
+        _showErrorSnackBar('Failed to find chart widget');
+        return;
+      }
+
+      // Check if the boundary is ready for rendering
+      if (boundary.debugNeedsPaint) {
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+
+      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      final ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+
+      if (byteData == null) {
         _showErrorSnackBar('Failed to capture chart image');
         return;
       }
 
-      // Get temporary directory
+      final Uint8List imageBytes = byteData.buffer.asUint8List();
+
+      // Get temporary directory for sharing
       final directory = await getTemporaryDirectory();
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-      final fileName = 'expense_${widget.chartType}_chart_$timestamp.png';
+      // Capitalize the chart type for better file naming
+      final capitalizedChartType =
+          widget.chartType.substring(0, 1).toUpperCase() +
+              widget.chartType.substring(1);
+      final fileName = 'expense_${capitalizedChartType}_chart_$timestamp.png';
       final filePath = '${directory.path}/$fileName';
 
-      // Save the image to a file
+      // Save the image to a file for sharing
       final File file = File(filePath);
       await file.writeAsBytes(imageBytes);
 
-      // Share the file
-      await Share.shareXFiles(
-        [XFile(filePath)],
-        text: 'Expense ${widget.chartType} chart',
+      // Also save to gallery
+      final result = await ImageGallerySaver.saveImage(
+        imageBytes,
+        name: fileName,
+        quality: 100,
+        isReturnImagePathOfIOS: true,
       );
 
-      _showSuccessSnackBar('Chart saved and ready to share');
+      // Check if the image was saved successfully
+      if (result == null || (result is Map && result['isSuccess'] == false)) {
+        _showErrorSnackBar('Failed to save chart to gallery');
+        return;
+      }
+
+      // Share the file
+      try {
+        await Share.shareXFiles(
+          [XFile(filePath)],
+          text: 'Expense $capitalizedChartType Chart',
+        );
+      } catch (shareError) {
+        // If sharing fails, still show success for gallery save
+        _showSuccessSnackBar('Chart saved to gallery successfully');
+        return;
+      }
+
+      _showSuccessSnackBar('Chart saved to gallery and ready to share');
     } catch (e) {
       _showErrorSnackBar('Error saving chart: $e');
     } finally {

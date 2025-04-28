@@ -110,9 +110,11 @@ class HomeScreen extends StatelessWidget {
             style: TextStyle(fontSize: 18),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'The CSV should contain Date, Category, and Amount columns',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
+          Center(
+            child: const Text(
+              'The CSV should contain Date, Category, and Amount columns',
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
